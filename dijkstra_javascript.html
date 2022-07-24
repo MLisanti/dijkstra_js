@@ -1,0 +1,178 @@
+<html>
+<head>
+<script>
+
+//dijkstra
+var grafo = [];
+
+var nodo = function(nome, rifProssimoNodo) {
+	var self = this;
+	var priv = {};
+	
+	self.nome = nome;
+	self.collegati = [];
+	
+	//peso strada per ogni nodo collegato
+	self.pesoStrada = [];
+}
+
+var collegaNodi = function(nodo1, nodo2, peso) {
+	//salva riferimento e peso
+	
+	if(peso < 0) peso = 0;
+	
+	nodo1.collegati.push(nodo2);
+	nodo1.pesoStrada[nodo2.nome] = peso;
+}
+
+
+var calcolaPossibiliStrade = function(nodoStart, nodoEnd, pesoAttuale, stradaFatta) {
+
+	var possibilita = [];
+	
+	pesoAttuale = pesoAttuale == null ? 0 : pesoAttuale;
+	stradaFatta = stradaFatta == null ? nodoStart.nome : stradaFatta;
+	
+	for(var iNodo=0; iNodo < nodoStart.collegati.length; iNodo++) {
+		var nodoAttuale = nodoStart.collegati[iNodo];
+		var pesoPerNodo = nodoStart.pesoStrada[nodoAttuale.nome];
+		
+		var pesoFinale = pesoAttuale + pesoPerNodo;
+				
+		var stradaFattaFinoAdesso = stradaFatta + "," + nodoAttuale.nome;
+		
+		var valoreMigliore = 0;
+		possibilita[iNodo] = {};
+		
+		if(nodoAttuale.nome == nodoEnd.nome) {
+		
+			possibilita[iNodo].strade = [
+					{
+						peso: pesoFinale,
+						strada: stradaFattaFinoAdesso
+					}
+				];
+			
+		}
+		else {
+			//un altro nodo con nome diverso
+			//nota: evita di prendere nodo già visitato perché poi va in loop
+			var stradeCalcolate = calcolaPossibiliStrade(nodoAttuale, nodoEnd, pesoFinale, stradaFattaFinoAdesso);
+			
+			possibilita[iNodo].strade = stradeCalcolate;
+		}
+	}
+	
+	return possibilita;
+}
+
+
+var calcolaStradaPiuCorta = function(possibiliStrade) {
+	// prende valore minimo tra le strade
+	// se trova più di una strada con lo stesso valore minimo, restituisce la prima
+	
+	var stradaMigliore = {
+						peso: Infinity,
+						strada: ""
+					};
+	
+	var confronta = {
+						peso: Infinity,
+						strada: ""
+					};
+	
+	for(var i=0; i<possibiliStrade.length; i++) {
+		
+		//se ci sono più strade
+			//confronta l'array di oggetti e prendi quello che ha la strada con meno peso
+		
+			//se un oggetto ha più strade, controlla le più interne
+		for(var j=0; j < possibiliStrade[i].strade.length; j++) {
+		
+			if(possibiliStrade[i].strade[j].peso != null) {
+				confronta = possibiliStrade[i].strade[j];
+			} else {
+				//oggetto che ha più strade > 
+				//  controlla nella lista qual è quella migliore
+				confronta = calcolaStradaPiuCorta(possibiliStrade[i].strade);
+			}
+			
+			if(stradaMigliore.peso > confronta.peso) {
+				stradaMigliore.peso = confronta.peso;
+				stradaMigliore.strada = confronta.strada;
+			}
+		
+		}
+	}
+	
+	return stradaMigliore;
+}
+
+/*
+	restituisce una soluzione 
+	- quando trova due strade equivalenti per peso, restituisci la prima
+*/
+var calcolaStradaMigliore = function(nodoStart, nodoEnd) {
+	var possibiliStrade = calcolaPossibiliStrade(nodoStart, nodoEnd);
+	
+	return calcolaStradaPiuCorta(possibiliStrade) ;
+}
+
+var nodoEnd = new nodo("e")
+var nodoStart = new nodo("s");
+
+var nodoA = new nodo("A")
+var nodoB = new nodo("B")
+
+collegaNodi(nodoStart, nodoA, 2);
+collegaNodi(nodoA, nodoEnd, 3);
+
+collegaNodi(nodoStart, nodoB, 1);
+collegaNodi(nodoB, nodoEnd, 4);
+
+collegaNodi(nodoStart, nodoEnd, 6);
+
+/*
+//algoritmo non termina, deve controllare strade già intraprese
+collegaNodi(nodoStart, nodoA, 5);
+collegaNodi(nodoA, nodoB, 2);
+collegaNodi(nodoB, nodoA, 2);
+*/
+
+var valori = calcolaStradaMigliore(nodoStart, nodoEnd);
+console.log(valori);
+
+// test labirinto
+var creaLabirinto = function(dimensione) {
+	var dimensioneLabirinto = dimensione == null ? 3 : dimensione;
+	
+	var labirinto = new Array(dimensioneLabirinto);
+	for(var i=0; i < dimensioneLabirinto; i++) {
+		labirinto[i] = new Array(dimensioneLabirinto);
+	}
+
+	for(var i=0; i < dimensioneLabirinto; i++) {
+		for(var j=0; j < dimensioneLabirinto; j++) { 
+			labirinto[i][j] = new nodo(i + "" + j);
+			
+			console.log("creato nodo " + i + "" + j);
+		}
+	}
+
+	var nodoStart = new nodo("start");
+	var nodoEnd = new nodo("end");
+	
+	// connetti i nodi in modo casuale (peso 1)
+	// connetti inizio e fine
+}
+
+
+
+
+</script>
+</head>
+<body>
+<h1>Dijkstra</h1>
+Un editor per le strade + canvas!
+</body>
+<html>
